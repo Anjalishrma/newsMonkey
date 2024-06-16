@@ -19,15 +19,20 @@ const News = (props) => {
     console.log('CDM');
     const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${page}&pageSize=${props.pageSize}`;
     setLoading(true);
-    const data = await fetch(url);
-    props.setProgress(30);
-    const parsedData = await data.json();
-    props.setProgress(70);
-    console.log(parsedData);
-    setArticles(parsedData.articles);
-    setLoading(false);
-    setTotalResults(parsedData.totalResults);
-    props.setProgress(100);
+    try {
+      const data = await fetch(url);
+      props.setProgress(30);
+      const parsedData = await data.json();
+      props.setProgress(70);
+      console.log(parsedData);
+      setArticles(parsedData.articles || []); // Ensure articles is an array
+      setTotalResults(parsedData.totalResults || 0); // Ensure totalResults is a number
+      setLoading(false);
+      props.setProgress(100);
+    } catch (error) {
+      console.error("Failed to fetch news:", error);
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -39,13 +44,16 @@ const News = (props) => {
   const fetchMoreData = async () => {
     const nextPage = page + 1;
     const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${nextPage}&pageSize=${props.pageSize}`;
-    const data = await fetch(url);
-    const parsedData = await data.json();
-    console.log(parsedData);
-    setArticles((prevArticles) => prevArticles.concat(parsedData.articles));
-    setTotalResults(parsedData.totalResults);
-    setPage(nextPage);
-    setLoading(false);
+    try {
+      const data = await fetch(url);
+      const parsedData = await data.json();
+      console.log(parsedData);
+      setArticles((prevArticles) => [...prevArticles, ...(parsedData.articles || [])]); // Ensure articles is concatenated properly
+      setTotalResults(parsedData.totalResults || 0);
+      setPage(nextPage);
+    } catch (error) {
+      console.error("Failed to fetch more news:", error);
+    }
   };
 
   console.log('render');
@@ -56,7 +64,7 @@ const News = (props) => {
       </h1>
       {loading && <Spinnerr />}
       <InfiniteScroll
-        dataLength={articles.length}
+        dataLength={articles ? articles.length : 0} // Ensure dataLength is always a number
         next={fetchMoreData}
         hasMore={articles.length !== totalResults}
         loader={<Spinnerr />}
