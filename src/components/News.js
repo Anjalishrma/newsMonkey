@@ -1,4 +1,4 @@
-import React, {useEffect, useInsertionEffect, useState } from 'react'  
+import React, {useEffect, useState } from 'react'  
 import NewsItem from './NewsItem'
 import Spinnerr from './Spinnerr';
 import PropTypes from 'prop-types';
